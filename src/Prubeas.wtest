@@ -1,0 +1,100 @@
+import Nave.*
+import Tarea.*
+import Jugador.*
+import Excepciones.*
+
+const tripulante1 = new Tripulante(tareasPendientes = #{sacarLaBasura, ventilarLaNave, arreglarTableroElectrico}, mochila = ["escoba", "bolsa", "llaveInglesa"] )
+const impostor1 = new Impostor()
+
+describe "Punto 1" {
+
+	test "Un tripulante con 50 o  menos nivel de sospecha no es sospechoso" {
+		assert.notThat(tripulante1.esSospechoso())
+	}
+	
+	test "Un tripulante con mas de 50 nivel de sospecha es sospechoso" {
+		tripulante1.aumentarNivelDeSospechaEn(11)
+		assert.that(tripulante1.esSospechoso())
+	}
+	
+	test "Un impostor con 50 o  menos nivel de sospecha no es sospechoso" {
+		assert.notThat(impostor1.esSospechoso())
+	}
+	
+	test "Un impostor con mas de 50 nivel de sospecha es sospechoso" {
+		impostor1.aumentarNivelDeSospechaEn(11)
+		assert.that(impostor1.esSospechoso())
+	}
+}
+
+describe "Punto 2"{
+	test "Un Tripulante busca un item y lo agrega a su mochila"{
+		tripulante1.buscar("martillo")
+		assert.that(tripulante1.tieneHerramienta("martillo"))
+	}
+	
+	test "Un Impostor busca un item y lo agrega a su mochila"{
+		impostor1.buscar("martillo")
+		assert.that(impostor1.tieneHerramienta("martillo"))
+	}
+}
+
+describe "Punto 3"{
+	test "Un tripulante con tareas restantes, no completó todas sus tareas"{
+		assert.notThat(tripulante1.completoTareas())
+	}
+	
+	test "Un tripulante sin tareas restantes, completó todas sus tareas"{
+		tripulante1.eliminarTarea(sacarLaBasura)
+		tripulante1.eliminarTarea(ventilarLaNave)
+		tripulante1.eliminarTarea(arreglarTableroElectrico)
+		assert.that(tripulante1.completoTareas())
+	}
+	
+	test "Un impostor siempre terminó sus tareas"{
+		assert.that(impostor1.completoTareas())
+	}
+	
+}
+
+describe "Punto 4"{
+	method initialize(){
+		nave.agregarJugador(tripulante1)
+		nave.agregarJugador(impostor1)	
+	}
+	
+	test "Un tripulante completa la tarea sacarLaBasura"{
+		tripulante1.completar(sacarLaBasura)
+		assert.equals(36, tripulante1.nivelDeSospecha())
+		assert.notThat(tripulante1.tieneHerramienta("bolsa"))
+		assert.notThat(tripulante1.tieneHerramienta("escoba"))
+		assert.notThat(tripulante1.tareasPendientes().contains(sacarLaBasura))
+		
+	}
+	
+	test "Un tripulante completa la tarea arreglarTableroElectrico"{
+		tripulante1.completar(arreglarTableroElectrico)
+		assert.equals(50, tripulante1.nivelDeSospecha())
+		assert.notThat(tripulante1.tieneHerramienta("llaveInglesa"))
+		assert.notThat(tripulante1.tareasPendientes().contains(arreglarTableroElectrico))
+	}
+	
+	test "Un tripulante completa la tarea ventilarLaNave"{
+		tripulante1.completar(ventilarLaNave)
+		assert.equals(40, tripulante1.nivelDeSospecha())
+		assert.equals(105, nave.nivelDeOxigeno())
+		assert.notThat(tripulante1.tareasPendientes().contains(ventilarLaNave))
+	}
+	
+	test "Un tripulante completa una tarea y le avisa al juego, pero como todavia quedan tareas no se termina el juego"{
+		assert.doesNotThrowException({tripulante1.completarAlgunaTarea()})
+	}
+	
+	test "Un tripulante completa una tarea y le avisa al juego, y como todos terminaron las tareas, se terminó el juego"{
+		tripulante1.eliminarTarea(sacarLaBasura)
+		tripulante1.eliminarTarea(arreglarTableroElectrico)
+		assert.throwsExceptionLike(ganaronLosTripulantes,{tripulante1.completarAlgunaTarea()})
+	}
+	
+	
+}
